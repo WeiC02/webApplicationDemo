@@ -1,31 +1,22 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Security.AccessControl;
 using webApplicationDemo.DAL;
 using webApplicationDemo.Models;
 
 namespace webApplicationDemo.Controllers
 {
-    public class CompanyController : Controller
+    public class EmployeeController : Controller
     {
-
         private readonly EmployeeDAL _employeeDAL;
-     
-        public CompanyController(EmployeeDAL employeeDAL)
-        {
-            _employeeDAL = employeeDAL;
-        }
 
-        public IActionResult Company()
+        public EmployeeController(IConfiguration configuration)
         {
-            return View();
+            _employeeDAL = new EmployeeDAL(configuration);
         }
-
-        public IActionResult AddEmpInCmp()
+        public IActionResult Index()
         {
             List<EmployeeModel> employees = _employeeDAL.GetAllEmployees();
             return View(employees);
         }
-
 
     }
 }
