@@ -36,7 +36,15 @@ namespace webApplicationDemo.Controllers
 
         public IActionResult AddEmployeeView(int companyId)
         {
+            // Fetch company name from the database
+            string companyName = _companyDAL.GetCompanyName(companyId);
+
+            // Pass company name and ID to the view
+            ViewBag.CompanyId = companyId;
+            ViewBag.CompanyName = companyName;
+
             return View("AddEmpInCmp");
         }
+
     }
 }

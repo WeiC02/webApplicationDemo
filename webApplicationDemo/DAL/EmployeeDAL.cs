@@ -100,5 +100,27 @@ namespace webApplicationDemo.DAL
             return employees;
         }
 
+        public bool InsertEmployee(EmployeeModel employee)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = "INSERT INTO Employee (FullName, Email, Phone, HireDate, CompanyID) VALUES (@FullName, @Email, @Phone, @HireDate, @CompanyID)";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@FullName", employee.FullName);
+                    command.Parameters.AddWithValue("@Email", employee.Email);
+                    command.Parameters.AddWithValue("@Phone", employee.Phone);
+                    command.Parameters.AddWithValue("@HireDate", employee.HireDate);
+                    command.Parameters.AddWithValue("@CompanyID", employee.CompanyID);
+
+                    connection.Open();
+                    int rowsAffected = command.ExecuteNonQuery();
+                    return rowsAffected > 0;
+                }
+            }
+        }
+
+
     }
 }

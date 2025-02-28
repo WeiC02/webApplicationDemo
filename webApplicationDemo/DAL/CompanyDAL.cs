@@ -35,5 +35,26 @@ namespace webApplicationDemo.DAL
 
             return companyList;
         }
+
+        public string GetCompanyName(int companyId)
+        {
+            string companyName = "";
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = "SELECT Name FROM Company WHERE companyID = @CompanyID";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@CompanyID", companyId);
+                    connection.Open();
+                    var result = command.ExecuteScalar();
+                    if (result != null)
+                    {
+                        companyName = result.ToString();
+                    }
+                }
+            }
+            return companyName;
+        }
+
     }
 }
