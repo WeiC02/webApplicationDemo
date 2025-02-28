@@ -7,10 +7,12 @@ namespace webApplicationDemo.Controllers
     public class CompanyController : Controller
     {
         private readonly CompanyDAL _companyDAL;
+        private readonly EmployeeDAL _employeeDAL; // ✅ Add EmployeeDAL field
 
-        public CompanyController(CompanyDAL companyDAL)
+        public CompanyController(CompanyDAL companyDAL, EmployeeDAL employeeDAL)
         {
             _companyDAL = companyDAL;
+            _employeeDAL = employeeDAL; // ✅ Inject EmployeeDAL
         }
 
         public IActionResult Index()
