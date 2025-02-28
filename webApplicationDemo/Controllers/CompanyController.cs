@@ -7,25 +7,36 @@ namespace webApplicationDemo.Controllers
 {
     public class CompanyController : Controller
     {
+        private readonly CompanyDAL _companyDAL;
+        private readonly EmployeeDAL _employeeDAL; // ✅ Add EmployeeDAL field
 
-        private readonly EmployeeDAL _employeeDAL;
-     
-        public CompanyController(EmployeeDAL employeeDAL)
+        public CompanyController(CompanyDAL companyDAL, EmployeeDAL employeeDAL)
         {
-            _employeeDAL = employeeDAL;
+            _companyDAL = companyDAL;
+            _employeeDAL = employeeDAL; // ✅ Inject EmployeeDAL
         }
 
-        public IActionResult Company()
+        public IActionResult Index()
         {
-            return View();
+            List<CompanyModel> companies = _companyDAL.CompanyListGet();
+            return View("Company", companies);
+        }
+        [HttpGet]
+        public JsonResult GetEmployees(int companyId)
+        {
+            var employees = _employeeDAL.GetEmployeesByCompany(companyId);
+            return Json(employees);
         }
 
-        public IActionResult AddEmpInCmp()
+        //public IActionResult AddEmpInCmp()
+        //{
+        //    List<EmployeeModel> employees = _employeeDAL.GetAllEmployees();
+        //    return View(employees);
+        //}
+
+        public IActionResult AddEmployeeView(int companyId)
         {
-            List<EmployeeModel> employees = _employeeDAL.GetAllEmployees();
-            return View(employees);
+            return View("AddEmpInCmp");
         }
-
-
     }
 }

@@ -1,0 +1,96 @@
+﻿@model List<CompanyModel>
+
+@{
+    ViewData["Title"] = "Company Employee List";
+}
+
+<h2>Select a Company</h2>
+
+<!-- Company Dropdown -->
+<select id="companyDropdown" class="form-control">
+    <option value="">-- Select a Company --</option>
+    @foreach (var company in Model)
+    {
+        <option value="@company.CompanyID">@company.Name</option>
+    }
+</select>
+
+<!-- Employee List -->
+<h3 class="mt-3 d-flex justify-content-between align-items-center">
+    Employees
+    <button id="addEmployeeBtn" class="btn btn-primary" hidden onclick="redirectToAddEmployee()">Add Employee</button>
+</h3>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+        </tr>
+    </thead>
+    <tbody id="employeeTable">
+        <tr><td colspan="3" class="text-center">Select a company to see employees.</td></tr>
+    </tbody>
+</table>
+
+<!-- AJAX Script -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function fetchEmployees() {
+        var companyId = document.getElementById('companyDropdown').value;
+        $("#error-msg").hide();
+        $("#error-msg").text("");
+
+        if (companyId === "") {
+            document.getElementById('error-msg').style.display = 'block';
+            document.getElementById('error-msg').innerText = "Please select a company";
+            $("#addEmployeeBtn").attr("hidden", true);
+        } else {
+            $('#loading-spinner').attr("hidden", false); // Show spinner
+            $("#addEmployeeBtn").attr("hidden", false); // Show Add Employee Button
+
+            setTimeout(function () {
+                $.ajax({
+                    type: "GET",
+                    url: "/Company/GetEmployees",
+                    data: { companyId: companyId },
+                    success: function (data) {
+                        var rows = "";
+                        if (data.length > 0) {
+                            $.each(data, function (index, employee) {
+                                rows += `<tr>
+                                            <td>${employee.fullName}</td>
+                                            <td>${employee.email}</td>
+                                            <td>${employee.phone}</td>
+                                        </tr>`;
+                            });
+                        } else {
+                            rows = '<tr><td colspan="3" class="text-center">No employees found.</td></tr>';
+                        }
+                        document.getElementById("employeeTable").innerHTML = rows;
+                        $('#loading-spinner').attr("hidden", true); // Hide spinner
+                    },
+                    error: function () {
+                        document.getElementById('error-msg').style.display = 'block';
+                        document.getElementById('error-msg').innerText = "Error fetching employee data.";
+                        $('#loading-spinner').attr("hidden", true); // Hide spinner
+                    }
+                });
+            }, 1000); // 1-second delay
+        }
+    }
+
+    function redirectToAddEmployee() {
+        var companyId = document.getElementById('companyDropdown').value;
+        if (companyId) {
+            window.location.href = "/Company/AddEmployeeView?companyId=" + companyId;
+        } else {
+            alert("Please select a company first.");
+        }
+    }
+
+    $(document).ready(function () {
+        $("#companyDropdown").change(fetchEmployees);
+    });
+</script>

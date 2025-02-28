@@ -4,6 +4,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<CompanyDAL>();
 builder.Services.AddScoped<EmployeeDAL>();
 
 var app = builder.Build();
@@ -26,6 +27,8 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
+    pattern: "{controller=Company}/{action=Index}/{id?}");
     pattern: "{controller=Company}/{action=AddEmpInCmp}/{id?}");
+
 
 app.Run();
