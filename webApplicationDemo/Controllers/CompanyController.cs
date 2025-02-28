@@ -1,12 +1,28 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using webApplicationDemo.DAL;
+using webApplicationDemo.Models;
 
 namespace webApplicationDemo.Controllers
 {
     public class CompanyController : Controller
     {
-        public IActionResult Company()
+        private readonly CompanyDAL _companyDAL;
+
+        public CompanyController(CompanyDAL companyDAL)
         {
-            return View();
+            _companyDAL = companyDAL;
+        }
+
+        public IActionResult Index()
+        {
+            List<CompanyModel> companies = _companyDAL.CompanyListGet();
+            return View("Company", companies);
+        }
+        [HttpGet]
+        public JsonResult GetEmployees(int companyId)
+        {
+            var employees = _employeeDAL.GetEmployeesByCompany(companyId);
+            return Json(employees);
         }
     }
 }
