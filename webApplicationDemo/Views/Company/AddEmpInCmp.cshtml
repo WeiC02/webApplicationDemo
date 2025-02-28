@@ -1,30 +1,35 @@
-﻿@model List<EmployeeModel>
-
-@{
+﻿@{
     ViewData["Title"] = "Add Employee";
+    int companyId = ViewBag.CompanyId;
+    string companyName = ViewBag.CompanyName ?? "Unknown Company";
 }
 
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Add New Employee to <span class="text-primary">@companyName</span></h2>
 
-<h2>Employee List</h2>
+    <form asp-action="AddEmployee" asp-controller="Employee" method="post">
+        <input type="hidden" name="CompanyID" value="@companyId" />
 
-<table border="1">
-    <tr>
-        <th>ID</th>
-        <th>Full Name</th>
-        <th>Email</th>
-        <th>Phone</th>
-        <th>Hire Date</th>
-        <th>Company ID</th>
-    </tr>
-    @foreach (var emp in Model)
-    {
-        <tr>
-            <td>@emp.EmployeeID</td>
-            <td>@emp.FullName</td>
-            <td>@emp.Email</td>
-            <td>@emp.Phone</td>
-            <td>@emp.HireDate.ToShortDateString()</td>
-            <td>@emp.CompanyID</td>
-        </tr>
-    }
-</table>
+        <div class="mb-3">
+            <label for="FullName" class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="FullName" name="FullName" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="Email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="Email" name="Email" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="Phone" class="form-label">Phone</label>
+            <input type="text" class="form-control" id="Phone" name="Phone" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="HireDate" class="form-label">Hire Date</label>
+            <input type="date" class="form-control" id="HireDate" name="HireDate" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add Employee</button>
+    </form>
+</div>
