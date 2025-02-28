@@ -1,4 +1,4 @@
-﻿using webApplicationDemo.Models;
+using webApplicationDemo.Models;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using Dapper;
@@ -35,5 +35,4 @@ namespace webApplicationDemo.DAL
 
             return companyList;
         }
-    }
 }

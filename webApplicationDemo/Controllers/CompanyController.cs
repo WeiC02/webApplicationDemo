@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Security.AccessControl;
 using webApplicationDemo.DAL;
 using webApplicationDemo.Models;
 
@@ -26,5 +27,13 @@ namespace webApplicationDemo.Controllers
             var employees = _employeeDAL.GetEmployeesByCompany(companyId);
             return Json(employees);
         }
+
+        public IActionResult AddEmpInCmp()
+        {
+            List<EmployeeModel> employees = _employeeDAL.GetAllEmployees();
+            return View(employees);
+        }
+
+
     }
 }
