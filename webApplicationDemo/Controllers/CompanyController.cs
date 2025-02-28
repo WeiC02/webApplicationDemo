@@ -28,12 +28,15 @@ namespace webApplicationDemo.Controllers
             return Json(employees);
         }
 
-        public IActionResult AddEmpInCmp()
+        //public IActionResult AddEmpInCmp()
+        //{
+        //    List<EmployeeModel> employees = _employeeDAL.GetAllEmployees();
+        //    return View(employees);
+        //}
+
+        public IActionResult AddEmployeeView(int companyId)
         {
-            List<EmployeeModel> employees = _employeeDAL.GetAllEmployees();
-            return View(employees);
+            return View("AddEmpInCmp");
         }
-
-
     }
 }
