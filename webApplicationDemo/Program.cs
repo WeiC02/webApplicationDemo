@@ -1,7 +1,10 @@
+using webApplicationDemo.DAL;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<EmployeeDAL>();
 
 var app = builder.Build();
 
@@ -13,6 +16,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
@@ -22,6 +26,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Company}/{action=Company}/{id?}");
+    pattern: "{controller=Company}/{action=AddEmpInCmp}/{id?}");
 
 app.Run();

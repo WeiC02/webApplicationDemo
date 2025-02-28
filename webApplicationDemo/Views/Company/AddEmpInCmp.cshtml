@@ -1,0 +1,30 @@
+﻿@model List<EmployeeModel>
+
+@{
+    ViewData["Title"] = "Add Employee";
+}
+
+
+<h2>Employee List</h2>
+
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>Full Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Hire Date</th>
+        <th>Company ID</th>
+    </tr>
+    @foreach (var emp in Model)
+    {
+        <tr>
+            <td>@emp.EmployeeID</td>
+            <td>@emp.FullName</td>
+            <td>@emp.Email</td>
+            <td>@emp.Phone</td>
+            <td>@emp.HireDate.ToShortDateString()</td>
+            <td>@emp.CompanyID</td>
+        </tr>
+    }
+</table>
