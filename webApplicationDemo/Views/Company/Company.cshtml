@@ -111,6 +111,7 @@
             <th>Full Name</th>
             <th>Email</th>
             <th>Phone</th>
+            <th>Action</th>
         </tr>
     </thead>
     <tbody id="employeeTable">
@@ -189,6 +190,7 @@
                     url: "/Company/GetEmployees",
                     data: { companyId: companyId },
                     success: function (data) {
+                        console.log(data);
                         var rows = "";
                         if (data.length > 0) {
                             $.each(data, function (index, employee) {
@@ -197,23 +199,23 @@
                                     : "/images/default-avatar.png";
 
                                 rows += `<tr>
-                                                <td class="image-column">
-                                                    <img src="${imageSrc}" alt="Employee Image" class="employee-image img-thumbnail">
-                                                </td>
-                                                <td>${employee.fullName}</td>
-                                                <td>${employee.email}</td>
-                                                <td>${employee.phone}</td>
-                                             </tr>`;
+                            <td class="image-column">
+                                <img src="${imageSrc}" alt="Employee Image" class="employee-image img-thumbnail">
+                            </td>
+                            <td>${employee.fullName}</td>
+                            <td>${employee.email}</td>
+                            <td>${employee.phone}</td>
+                            <td>
+                                        <button class="btn btn-warning btn-sm" onclick="editEmployee(${employee.employeeID})">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                            </td>
+                        </tr>`;
                             });
                         } else {
-                            rows = '<tr><td colspan="4" class="text-center">No employees found.</td></tr>';
+                            rows = '<tr><td colspan="5" class="text-center">No employees found.</td></tr>';
                         }
                         document.getElementById("employeeTable").innerHTML = rows;
-                        $('#loading-spinner').attr("hidden", true);
-                    },
-                    error: function () {
-                        document.getElementById('error-msg').style.display = 'block';
-                        document.getElementById('error-msg').innerText = "Error fetching employee data.";
                         $('#loading-spinner').attr("hidden", true);
                     }
                 });
@@ -233,4 +235,9 @@
     $(document).ready(function () {
         $("#companyDropdown").change(fetchEmployees);
     });
+
+    function editEmployee(employeeID) {
+        window.location.href = `/Employee/Edit?employeeId=${employeeID}`;
+}
+
 </script>
