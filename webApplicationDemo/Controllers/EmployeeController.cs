@@ -18,20 +18,26 @@ namespace webApplicationDemo.Controllers
             return View(employees);
         }
         [HttpPost]
-        public IActionResult AddEmployee(EmployeeModel employee)
+        public IActionResult AddEmployee(EmployeeModel employee, string EmployeePhoto)
         {
             if (employee == null)
             {
-                return BadRequest("Invalid employee data.");
+                return Json(new { success = false, message = "Invalid employee data." });
             }
 
-            // Convert image file to byte[]
-            if (employee.EmployeeImageFile != null)
+            // Convert Base64 string to byte[] if a webcam photo was taken
+            if (!string.IsNullOrEmpty(EmployeePhoto))
+            {
+                string base64Data = EmployeePhoto.Split(',')[1]; // Remove data URL prefix
+                employee.EmployeeImage = Convert.FromBase64String(base64Data);
+            }
+            // If an image file was uploaded instead
+            else if (employee.EmployeeImageFile != null)
             {
                 using (var ms = new MemoryStream())
                 {
                     employee.EmployeeImageFile.CopyTo(ms);
-                    employee.EmployeeImage = ms.ToArray(); // Store binary image
+                    employee.EmployeeImage = ms.ToArray();
                 }
             }
 
@@ -39,14 +45,15 @@ namespace webApplicationDemo.Controllers
 
             if (isSuccess)
             {
-                string script = "<script>alert('Employee added successfully!'); window.location.href='/Company/Index';</script>";
-                return Content(script, "text/html");
+                return Json(new { success = true, redirectUrl = "/Company/Index" });
             }
             else
             {
-                return View(employee);
+                return Json(new { success = false, message = "Failed to add employee." });
             }
         }
+
+
 
 
     }
