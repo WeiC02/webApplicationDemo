@@ -11,8 +11,10 @@ namespace webApplicationDemo.Models
         public string Email { get; set; }
         public string Phone { get; set; }
         public DateTime HireDate { get; set; }
-        public string? EmployeeImage { get; set; } // Nullable
+        public byte[]? EmployeeImage { get; set; } // Store image in DB
         public int CompanyID { get; set; }
+        [NotMapped] // Prevent EF from mapping this field to the database
+        public IFormFile? EmployeeImageFile { get; set; }
 
     }
 }

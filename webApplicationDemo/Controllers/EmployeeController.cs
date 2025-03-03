@@ -25,16 +25,26 @@ namespace webApplicationDemo.Controllers
                 return BadRequest("Invalid employee data.");
             }
 
+            // Convert image file to byte[]
+            if (employee.EmployeeImageFile != null)
+            {
+                using (var ms = new MemoryStream())
+                {
+                    employee.EmployeeImageFile.CopyTo(ms);
+                    employee.EmployeeImage = ms.ToArray(); // Store binary image
+                }
+            }
+
             bool isSuccess = _employeeDAL.InsertEmployee(employee);
 
             if (isSuccess)
             {
-                return RedirectToAction("Index", "Company");
-                // Redirect to employee list after successful insertion
+                string script = "<script>alert('Employee added successfully!'); window.location.href='/Company/Index';</script>";
+                return Content(script, "text/html");
             }
             else
             {
-                return View(employee); // Stay on the form if insertion fails
+                return View(employee);
             }
         }
 

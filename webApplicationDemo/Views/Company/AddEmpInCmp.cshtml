@@ -7,8 +7,8 @@
 <div class="container mt-4">
     <h2 class="text-center mb-4">Add New Employee to <span class="text-primary">@companyName</span></h2>
 
-    <form asp-action="AddEmployee" asp-controller="Employee" method="post">
-        <input type="hidden" name="CompanyID" value="@companyId" />
+    <form asp-action="AddEmployee" asp-controller="Employee" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="CompanyID" value="@companyId" />  <!-- Hidden CompanyID -->
 
         <div class="mb-3">
             <label for="FullName" class="form-label">Full Name</label>
@@ -28,6 +28,11 @@
         <div class="mb-3">
             <label for="HireDate" class="form-label">Hire Date</label>
             <input type="date" class="form-control" id="HireDate" name="HireDate" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="EmployeeImageFile" class="form-label">Employee Image</label>
+            <input type="file" class="form-control" id="EmployeeImageFile" name="EmployeeImageFile" accept="image/*">
         </div>
 
         <button type="submit" class="btn btn-primary">Add Employee</button>

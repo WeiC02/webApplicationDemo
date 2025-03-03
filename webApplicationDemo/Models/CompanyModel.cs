@@ -19,5 +19,12 @@ namespace webApplicationDemo.Models
 
         // Navigation property for employees
         public ICollection<EmployeeModel> Employees { get; set; } = new List<EmployeeModel>();
+        public string CompanyLogoBase64
+        {
+            get
+            {
+                return CompanyLogo != null ? "data:image/png;base64," + Convert.ToBase64String(CompanyLogo) : "";
+            }
+        }
     }
 }
