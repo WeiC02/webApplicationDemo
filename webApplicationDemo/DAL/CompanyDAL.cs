@@ -36,6 +36,24 @@ namespace webApplicationDemo.DAL
             return companyList;
         }
 
+        public bool UpdateCompanyLogo(int companyId, byte[] logoBytes)
+        {
+            string query = "UPDATE Company SET CompanyLogo = @Logo WHERE CompanyID = @CompanyId";
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@CompanyId", companyId);
+                    cmd.Parameters.AddWithValue("@Logo", (object)logoBytes ?? DBNull.Value);
+
+                    conn.Open();
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+            }
+        }
+
+
         public string GetCompanyName(int companyId)
         {
             string companyName = "";

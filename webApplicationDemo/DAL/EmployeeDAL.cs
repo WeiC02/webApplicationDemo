@@ -42,7 +42,7 @@ namespace webApplicationDemo.DAL
                                     Email = reader.GetString(2),
                                     Phone = reader.GetString(3),
                                     HireDate = reader.GetDateTime(4),
-                                    EmployeeImage = reader.IsDBNull(5) ? null : reader.GetString(5),
+                                    EmployeeImage = reader.IsDBNull(5) ? null : (byte[])reader["EmployeeImage"],
                                     CompanyID = reader.GetInt32(6)
                                 });
                             }
@@ -84,7 +84,7 @@ namespace webApplicationDemo.DAL
                                     Email = reader.GetString(2),
                                     Phone = reader.GetString(3),
                                     HireDate = reader.GetDateTime(4),
-                                    EmployeeImage = reader.IsDBNull(5) ? null : reader.GetString(5),
+                                    EmployeeImage = reader.IsDBNull(5) ? null : (byte[])reader["EmployeeImage"], // Corrected for VARBINARY
                                     CompanyID = reader.GetInt32(6)
                                 });
                             }
@@ -100,11 +100,13 @@ namespace webApplicationDemo.DAL
             return employees;
         }
 
+
         public bool InsertEmployee(EmployeeModel employee)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                string query = "INSERT INTO Employee (FullName, Email, Phone, HireDate, CompanyID) VALUES (@FullName, @Email, @Phone, @HireDate, @CompanyID)";
+                string query = "INSERT INTO Employee (FullName, Email, Phone, HireDate, CompanyID, EmployeeImage) " +
+                               "VALUES (@FullName, @Email, @Phone, @HireDate, @CompanyID, @EmployeeImage)";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
@@ -113,6 +115,7 @@ namespace webApplicationDemo.DAL
                     command.Parameters.AddWithValue("@Phone", employee.Phone);
                     command.Parameters.AddWithValue("@HireDate", employee.HireDate);
                     command.Parameters.AddWithValue("@CompanyID", employee.CompanyID);
+                    command.Parameters.Add("@EmployeeImage", SqlDbType.VarBinary).Value = (object?)employee.EmployeeImage ?? DBNull.Value;
 
                     connection.Open();
                     int rowsAffected = command.ExecuteNonQuery();
@@ -120,6 +123,7 @@ namespace webApplicationDemo.DAL
                 }
             }
         }
+
 
 
     }
