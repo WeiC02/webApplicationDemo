@@ -3,12 +3,39 @@
     int companyId = ViewBag.CompanyId;
     string companyName = ViewBag.CompanyName ?? "Unknown Company";
 }
+<script type="text/javascript" src="https://unpkg.com/webcam-easy/dist/webcam-easy.min.js"></script>
+<style>
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.7); /* Light overlay */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000; /* Ensure it's on top */
+    }
+
+    .disabled-form {
+        pointer-events: none; /* Disable all interactions */
+        opacity: 0.5; /* Make form look inactive */
+    }
+</style>
+
+<div id="loading-overlay" class="loading-overlay" hidden>
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+
 
 <div class="container mt-4">
     <h2 class="text-center mb-4">Add New Employee to <span class="text-primary">@companyName</span></h2>
-
     <form asp-action="AddEmployee" asp-controller="Employee" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="CompanyID" value="@companyId" />  <!-- Hidden CompanyID -->
+        <input type="hidden" name="CompanyID" value="@companyId" />
+        <input type="hidden" id="EmployeePhoto" name="EmployeePhoto" />
 
         <div class="mb-3">
             <label for="FullName" class="form-label">Full Name</label>
@@ -31,10 +58,95 @@
         </div>
 
         <div class="mb-3">
-            <label for="EmployeeImageFile" class="form-label">Employee Image</label>
-            <input type="file" class="form-control" id="EmployeeImageFile" name="EmployeeImageFile" accept="image/*">
+            <label class="form-label">Profile Photo</label>
+            <div>
+                <button type="button" class="btn btn-secondary" onclick="startWebcam()">Use Webcam</button>
+                <input type="file" id="uploadPhoto" class="form-control mt-2" accept="image/*">
+            </div>
+            <video id="webcam" autoplay playsinline width="320" height="240" class="d-none"></video>
+            <canvas id="canvas" class="d-none"></canvas>
+            <button type="button" class="btn btn-primary mt-2 d-none" id="captureButton">Capture Photo</button>
+            <img id="photoPreview" class="mt-2" width="150" />
         </div>
 
         <button type="submit" class="btn btn-primary">Add Employee</button>
     </form>
 </div>
+
+<script>
+    const webcamElement = document.getElementById('webcam');
+    const canvasElement = document.getElementById('canvas');
+    const photoPreview = document.getElementById('photoPreview');
+    const employeePhotoInput = document.getElementById('EmployeePhoto');
+    const captureButton = document.getElementById('captureButton');
+    const uploadPhotoInput = document.getElementById('uploadPhoto');
+    const webcam = new Webcam(webcamElement, 'user', canvasElement);
+
+    function startWebcam() {
+        webcamElement.classList.remove('d-none');
+        captureButton.classList.remove('d-none');
+        webcam.start();
+    }
+
+    captureButton.addEventListener('click', function () {
+        let picture = webcam.snap();
+        photoPreview.src = picture;
+        photoPreview.classList.remove('d-none');
+        employeePhotoInput.value = picture;
+        webcam.stop();
+        webcamElement.classList.add('d-none');
+        captureButton.classList.add('d-none');
+    });
+
+    uploadPhotoInput.addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                photoPreview.src = e.target.result;
+                photoPreview.classList.remove('d-none');
+                employeePhotoInput.value = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.querySelector("form").addEventListener("submit", function (event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const form = this;
+        const overlay = document.getElementById("loading-overlay");
+
+        // Disable form interactions
+        form.classList.add("disabled-form");
+        overlay.removeAttribute("hidden"); // Show spinner overlay
+
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: "POST",
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Enable form interactions again
+                form.classList.remove("disabled-form");
+                overlay.setAttribute("hidden", true); // Hide spinner overlay
+
+                if (data.success) {
+                    alert("Employee added successfully!");
+                    window.location.href = data.redirectUrl;
+                } else {
+                    alert(data.message || "An error occurred. Please try again.");
+                }
+            })
+            .catch(error => {
+                form.classList.remove("disabled-form");
+                overlay.setAttribute("hidden", true);
+                alert("An unexpected error occurred.");
+            });
+    });
+
+
+
+</script>
