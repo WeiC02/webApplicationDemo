@@ -33,6 +33,9 @@
 </div>
 
 <div class="container mt-4">
+    <a href="@Url.Action("Company", "Company")" class="btn btn-secondary mb-3">
+        ← Back
+    </a>
     <h2 class="text-center mb-4">Edit Employee in <span class="text-primary">@companyName</span></h2>
 
     <form asp-action="UpdateEmployee" asp-controller="Employee" method="post" enctype="multipart/form-data">

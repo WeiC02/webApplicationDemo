@@ -54,7 +54,18 @@ namespace webApplicationDemo.Controllers
             }
         }
 
-        public IActionResult Edit(int employeeId)
+        //public IActionResult Edit(int employeeId)
+        //{
+        //    var employee = _employeeDAL.GetEmployeeById(employeeId);
+        //    if (employee == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    return View("~/Views/Company/EditEmpInCmp.cshtml", employee);
+        //}
+
+        public IActionResult Edit(int employeeId, string companyName)
         {
             var employee = _employeeDAL.GetEmployeeById(employeeId);
             if (employee == null)
@@ -62,10 +73,9 @@ namespace webApplicationDemo.Controllers
                 return NotFound();
             }
 
+            ViewBag.CompanyName = companyName; // Pass company name to the view
             return View("~/Views/Company/EditEmpInCmp.cshtml", employee);
         }
-
-
 
         [HttpPost]
         public IActionResult UpdateEmployee(EmployeeModel employee, string EmployeePhoto)

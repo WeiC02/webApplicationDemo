@@ -1,4 +1,4 @@
-﻿@model List<CompanyModel>
+﻿@model List<CompanyModel>// define the model type that the Razor view will use
 
 @{
     ViewData["Title"] = "Company Employee List";
@@ -74,7 +74,7 @@
 
 <!-- Company Dropdown -->
 <select id="companyDropdown" class="form-control">
-    <option value="">-- Select a Company --</option>
+    <option value="" disabled>-- Select a Company --</option>
     @foreach (var company in Model)
     {
         <option value="@company.CompanyID" data-logo="@company.CompanyLogoBase64">
@@ -82,6 +82,7 @@
         </option>
     }
 </select>
+
 
 <!-- Display Selected Company Logo -->
 <div id="companyInfo" class="company-logo-container mt-3" hidden>
@@ -96,148 +97,190 @@
     <!-- File Input (Hidden) -->
     <input type="file" id="companyLogoInput" accept="image/*" hidden onchange="previewCompanyLogo(event)">
 </div>
-</div>
 
 <!-- Employee List -->
-<h3 class="mt-3 d-flex justify-content-between align-items-center">
+<h3 class="mt-3 d-flex justify-content-between align-items-center" style="margin-left: 70px;">
     Employees
-    <button id="addEmployeeBtn" class="btn btn-primary" hidden onclick="redirectToAddEmployee()">Add Employee</button>
+    <button id="addEmployeeBtn" class="btn btn-primary" onclick="redirectToAddEmployee()">Add Employee</button>
 </h3>
+<div style="padding: 0 70px;">
+    <table class="table table-bordered table-hover shadow-sm">
+        <thead class="bg-primary text-white">
+            <tr>
+                <th class="image-column">Employee Image</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="employeeTable">
+            <tr><td colspan="4" class="text-center">Select a company to see employees.</td></tr>
+        </tbody>
+    </table>
+</div>
 
-<table class="table table-bordered table-hover shadow-sm">
-    <thead class="bg-primary text-white">
-        <tr>
-            <th class="image-column">Employee Image</th>
-            <th>Full Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody id="employeeTable">
-        <tr><td colspan="4" class="text-center">Select a company to see employees.</td></tr>
-    </tbody>
-</table>
 
 <!-- AJAX Script -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    function previewCompanyLogo(event) {
-        var file = event.target.files[0];
-        var companyId = document.getElementById("companyDropdown").value;
+    $(document).ready(function () {
+        console.log("SelectedCompany from ViewBag: @ViewBag.SelectedCompany");
 
-        if (file) {
-            var reader = new FileReader();
-            reader.onload = function (e) {
-                document.getElementById('companyLogo').src = e.target.result;
-            };
-            reader.readAsDataURL(file);
+        var companyDropdown = $("#companyDropdown");
+        var employeeTable = $("#employeeTable");
+        var companyInfo = $("#companyInfo");
+        var addEmployeeBtn = $("#addEmployeeBtn");
+        var companyLogo = $("#companyLogo");
+        var companyName = $("#companyName");
 
-            // You can send the file to the server here
-            uploadCompanyLogo(file, companyId);
+       
+        // Restore last selected company from sessionStorage
+        var storedCompanyId = sessionStorage.getItem("SelectedCompany");
+        console.log("Stored SelectedCompany in sessionStorage:", storedCompanyId);
+
+        // If sessionStorage is empty, use ViewBag and store it
+        if (!storedCompanyId || storedCompanyId === "null") {
+            storedCompanyId = "@ViewBag.SelectedCompany"; // Get from ViewBag
+            if (storedCompanyId) {
+                sessionStorage.setItem("SelectedCompany", storedCompanyId);
+                console.log("Set sessionStorage to:", storedCompanyId);
+            }
         }
-    }
 
-    function uploadCompanyLogo(file, companyId) {
-        var formData = new FormData();
-        formData.append("companyLogoFile", file); // Ensure this matches the controller parameter name
-        formData.append("companyId", companyId); // Ensure companyId is sent
+        // Set dropdown value and fetch employees
+        if (storedCompanyId && companyDropdown.find(`option[value='${storedCompanyId}']`).length > 0) {
+            companyDropdown.val(storedCompanyId).trigger("change");
+            fetchEmployees(storedCompanyId);
+        }
 
-        $.ajax({
-            url: "/Company/UploadCompanyLogo",
-            type: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-                if (response.success) {
-                    alert(response.message);
-                    location.reload();
-                } else {
-                    alert("Error: " + response.message);
+        // Handle dropdown change
+        companyDropdown.change(function () {
+            var selectedCompany = $(this).val();
+            sessionStorage.setItem("SelectedCompany", selectedCompany);
+            fetchEmployees(selectedCompany);
+        });
+
+        function fetchEmployees(companyId) {
+            var selectedOption = companyDropdown.find(":selected");
+            var cName = selectedOption.text().trim(); // Get selected company name
+            var encodedCompanyName = encodeURIComponent(cName); // Encode for URL safety
+            console.log("Selected Company:", companyName);
+    console.log("Encoded Company Name:", encodedCompanyName);
+            var companyLogoBase64 = selectedOption.data("logo");
+            var companyText = selectedOption.text();
+
+            if (!companyId) {
+                employeeTable.html('<tr><td colspan="5" class="text-center">Select a company to see employees.</td></tr>');
+                companyInfo.hide();
+                addEmployeeBtn.hide();
+                return;
+            }
+
+            // Update company info section
+            companyInfo.show();
+            addEmployeeBtn.show();
+            companyLogo.attr("src", companyLogoBase64 || "default-logo.png");
+            companyName.text(companyText);
+            // Fetch employees
+            $.ajax({
+                type: "GET",
+                url: "/Company/GetEmployees",
+                data: { companyId: companyId },
+                beforeSend: function () {
+                    employeeTable.html('<tr><td colspan="5" class="text-center">Loading employees...</td></tr>');
+                },
+                success: function (data) {
+                    var rows = "";
+                    if (data.length > 0) {
+                        $.each(data, function (index, employee) {
+                            var imageSrc = employee.employeeImage
+                                ? `data:image/jpeg;base64,${employee.employeeImage}`
+                                : "/images/default-avatar.png";
+
+                            rows += `<tr>
+                                    <td class="image-column">
+                                        <img src="${imageSrc}" alt="Employee Image" class="employee-image img-thumbnail">
+                                    </td>
+                                    <td>${employee.fullName}</td>
+                                    <td>${employee.email}</td>
+                                    <td>${employee.phone}</td>
+                                    <td>
+                                        <a href="/Employee/Edit?employeeId=${employee.employeeID}&companyName=${encodedCompanyName}"
+       class="btn btn-warning btn-sm">
+       <i class="fas fa-edit"></i> Edit
+    </a>
+                                </td>
+                                </tr>`;
+                        });
+                    } else {
+                        rows = '<tr><td colspan="5" class="text-center">No employees found.</td></tr>';
+                    }
+                    employeeTable.html(rows);
+                },
+                error: function () {
+                    employeeTable.html('<tr><td colspan="5" class="text-center text-danger">Error loading employees.</td></tr>');
                 }
-            },
-            error: function () {
-                alert("Error uploading the company logo.");
+            });
+        }
+
+        // Upload company logo
+        $("#companyLogoInput").change(function (event) {
+            var file = event.target.files[0];
+            var companyId = companyDropdown.val();
+
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    companyLogo.attr("src", e.target.result);
+                };
+                reader.readAsDataURL(file);
+                uploadCompanyLogo(file, companyId);
             }
         });
-    }
 
-    function fetchEmployees() {
-        var companyDropdown = document.getElementById('companyDropdown');
-        var companyId = companyDropdown.value;
-        var companyLogo = companyDropdown.options[companyDropdown.selectedIndex].getAttribute('data-logo');
-        var companyName = companyDropdown.options[companyDropdown.selectedIndex].text;
+        function uploadCompanyLogo(file, companyId) {
+            var formData = new FormData();
+            formData.append("companyLogoFile", file);
+            formData.append("companyId", companyId);
 
-        $("#error-msg").hide();
-        $("#error-msg").text("");
-
-        if (companyId === "") {
-            document.getElementById('error-msg').style.display = 'block';
-            document.getElementById('error-msg').innerText = "Please select a company";
-            $("#addEmployeeBtn").attr("hidden", true);
-            $("#companyInfo").attr("hidden", true);
-        } else {
-            $('#loading-spinner').attr("hidden", false); // Show spinner
-            $("#addEmployeeBtn").attr("hidden", false); // Show Add Employee Button
-            $("#companyInfo").attr("hidden", false);
-            $("#companyLogo").attr("src", companyLogo);
-            $("#companyName").text(companyName);
-
-            setTimeout(function () {
-                $.ajax({
-                    type: "GET",
-                    url: "/Company/GetEmployees",
-                    data: { companyId: companyId },
-                    success: function (data) {
-                        console.log(data);
-                        var rows = "";
-                        if (data.length > 0) {
-                            $.each(data, function (index, employee) {
-                                var imageSrc = employee.employeeImage
-                                    ? `data:image/jpeg;base64,${employee.employeeImage}`
-                                    : "/images/default-avatar.png";
-
-                                rows += `<tr>
-                            <td class="image-column">
-                                <img src="${imageSrc}" alt="Employee Image" class="employee-image img-thumbnail">
-                            </td>
-                            <td>${employee.fullName}</td>
-                            <td>${employee.email}</td>
-                            <td>${employee.phone}</td>
-                            <td>
-                                        <button class="btn btn-warning btn-sm" onclick="editEmployee(${employee.employeeID})">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-                            </td>
-                        </tr>`;
-                            });
-                        } else {
-                            rows = '<tr><td colspan="5" class="text-center">No employees found.</td></tr>';
-                        }
-                        document.getElementById("employeeTable").innerHTML = rows;
-                        $('#loading-spinner').attr("hidden", true);
-                    }
-                });
-            }, 300);
+            $.ajax({
+                url: "/Company/UploadCompanyLogo",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    alert(response.success ? response.message : "Error: " + response.message);
+                    if (response.success) location.reload();
+                },
+                error: function () {
+                    alert("Error uploading the company logo.");
+                }
+            });
         }
-    }
 
-    function redirectToAddEmployee() {
-        var companyId = document.getElementById('companyDropdown').value;
-        if (companyId) {
-            window.location.href = "/Company/AddEmployeeView?companyId=" + companyId;
-        } else {
-            alert("Please select a company first.");
-        }
-    }
+        // Redirect to add employee
+        addEmployeeBtn.click(function () {
+            var companyId = companyDropdown.val();
+            if (companyId) {
+                window.location.href = "/Company/AddEmployeeView?companyId=" + companyId;
+            } else {
+                alert("Please select a company first.");
+            }
+        });
 
-    $(document).ready(function () {
-        $("#companyDropdown").change(fetchEmployees);
+        // Redirect to edit employee
+        window.editEmployee = function (employeeID, encodedCName) {
+            var companyName = decodeURIComponent(encodedCName); // Decode for safety
+
+    console.log("Navigating to Edit Page...");
+    console.log("Employee ID:", employeeID);
+    console.log("Company Name (Decoded):", companyName);
+
+            window.location.href = `/Employee/Edit?employeeId=${employeeID}&cName=${encodeURIComponent(companyName)}`;
+};
+
     });
-
-    function editEmployee(employeeID) {
-        window.location.href = `/Employee/Edit?employeeId=${employeeID}`;
-}
 
 </script>
