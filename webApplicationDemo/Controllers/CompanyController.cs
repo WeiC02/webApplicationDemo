@@ -2,6 +2,7 @@
 using System.Security.AccessControl;
 using webApplicationDemo.DAL;
 using webApplicationDemo.Models;
+using Microsoft.AspNetCore.Http; // Required for Session
 
 namespace webApplicationDemo.Controllers
 {
@@ -16,10 +17,39 @@ namespace webApplicationDemo.Controllers
             _employeeDAL = employeeDAL; // ✅ Inject EmployeeDAL
         }
 
-        public IActionResult Index()
+        //public IActionResult Company()
+        //{
+        //    List<CompanyModel> companies = _companyDAL.CompanyListGet();//get company name logo data to let users select from dropdown in the first page
+        //    return View(companies);
+        //}
+
+        public IActionResult Company()
         {
-            List<CompanyModel> companies = _companyDAL.CompanyListGet();
-            return View("Company", companies);
+            List<CompanyModel> companies = _companyDAL.CompanyListGet(); // Get company list
+
+            // Retrieve the last selected company from session
+            string lastSelectedCompany = HttpContext.Session.GetString("SelectedCompany");
+
+            // If session is empty and there are companies, set the first company as default
+            if (string.IsNullOrEmpty(lastSelectedCompany) && companies.Count > 0)
+            {
+                lastSelectedCompany = companies[0].CompanyID.ToString();
+                HttpContext.Session.SetString("SelectedCompany", lastSelectedCompany); // Store default selection in session
+            }
+
+            // Pass it to the view using ViewBag
+            ViewBag.SelectedCompany = lastSelectedCompany;
+
+            return View(companies);
+        }
+
+
+        [HttpPost]
+        public IActionResult SaveSelectedCompany(string companyId)
+        {
+            // Store the selected company ID in session
+            HttpContext.Session.SetString("SelectedCompany", companyId);
+            return Json(new { success = true });
         }
 
         [HttpPost]
